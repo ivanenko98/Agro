@@ -64,6 +64,5 @@ class FactoryController extends Controller
     {
         $factory->delete();
         return response()->json(null, 204);
-
     }
 }
