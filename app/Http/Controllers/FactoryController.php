@@ -17,7 +17,6 @@ class FactoryController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request $request
-     * @param Factory $farmer
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -28,8 +27,7 @@ class FactoryController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param Factory $farmer
+     * @param Factory $factory
      * @return \Illuminate\Http\Response
      * @internal param int $id
      */
@@ -43,8 +41,9 @@ class FactoryController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request $request
-     * @param Factory $farmer
+     * @param Factory $factory
      * @return \Illuminate\Http\Response
+     * @internal param Factory $farmer
      * @internal param int $id
      */
     public function update(Request $request, Factory $factory)
@@ -56,8 +55,9 @@ class FactoryController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param Factory $farmer
+     * @param Factory $factory
      * @return \Illuminate\Http\Response
+     * @internal param Factory $farmer
      * @internal param int $id
      */
     public function destroy(Factory $factory)

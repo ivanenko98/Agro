@@ -13,20 +13,16 @@ class FarmerController extends Controller
      * @param Farmer $farmer
      * @return \Illuminate\Http\Response
      */
-    public function index()
+
+    public function index(Farmer $farmer)
     {
         $farmer = Farmer::all();
         return response()->json($farmer, 201);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request $request
-     * @param Farmer $farmer
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+
+    public function store(Request $request, Farmer $farmer)
+
     {
         $farmer = Farmer::create($request->all());
         return response()->json($farmer, 201);

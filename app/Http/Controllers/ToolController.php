@@ -29,8 +29,9 @@ class ToolController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param Tool $farmer
+     * @param Tool $tool
      * @return \Illuminate\Http\Response
+     * @internal param Tool $farmer
      * @internal param int $id
      */
     public function show(Tool $tool)
@@ -43,8 +44,9 @@ class ToolController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request $request
-     * @param Tool $farmer
+     * @param Tool $tool
      * @return \Illuminate\Http\Response
+     * @internal param Tool $farmer
      * @internal param int $id
      */
     public function update(Request $request, Tool $tool)
@@ -56,8 +58,9 @@ class ToolController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param Tool $farmer
+     * @param Tool $tool
      * @return \Illuminate\Http\Response
+     * @internal param Tool $farmer
      * @internal param int $id
      */
     public function destroy(Tool $tool)
