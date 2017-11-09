@@ -117,4 +117,10 @@ Route::group(['middleware' => 'auth:api'], function() {
     /** delete rent */
     Route::delete('/rent/{elevator}', 'RentController@destroy');
 
+
+    /** PATHS */
+
+    /** show paths list */
+    Route::post('/path', 'PathController@index');
+
 });
