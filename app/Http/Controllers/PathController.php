@@ -24,37 +24,41 @@ class PathController extends Controller
             'longitude' => $shipment->longitude
         ];
 
-//        $words[] = 'shipment';
-
         foreach($request->tools as $tool){
 
             $tool = Tool::find($tool);
 
             $points[$tool->name] = [
-                        'latitude' => $tool->factory->latitude,
-                        'longitude' => $tool->factory->longitude
+                'latitude' => $tool->factory->latitude,
+                'longitude' => $tool->factory->longitude
             ];
 
-            $words[] = $tool->name;
+            $words[] = $tool;
         }
+
+        $elevators = Elevator::all();
+
+        $closestElevator = $this->closestElevator($elevators, $points);
+
+        $points['elevator'] = [
+            'latitude' => $closestElevator->latitude,
+            'longitude' => $closestElevator->longitude
+        ];
+
 //        print_r($points);
+
+
+//        $distance = $this->haversineGreatCircleDistance($points['shipment']['latitude'], $points['shipment']['longitude'], $points['Tool 1']['latitude'], $points['Tool 1']['longitude']);
+        $distance = $this->haversineGreatCircleDistance(49.35, 34.34, 50.00,36.15);
+
+        dd($distance);
 
         $paths = $this->allPossibleOptions($words);
 
-//        for($i = 0; $i < count($paths); $i++){
-//             if($paths[0] = '1' and end($paths) != '4'){
-//
-//             }
-//        }
-//
-//        dd(end($paths));
-//
-//        foreach ($paths as $path){
-//        }
+//        dd($paths);
 
-//        $paths
-
-        return $paths;
+//        return $paths;
+        return $this->optimalPath($points, $paths);
     }
 
     /**
@@ -85,6 +89,71 @@ class PathController extends Controller
         }
         return ($result);
     }
+
+    function haversineGreatCircleDistance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000)
+    {
+        // convert from degrees to radians
+        $latFrom = deg2rad($latitudeFrom);
+        $lonFrom = deg2rad($longitudeFrom);
+        $latTo = deg2rad($latitudeTo);
+        $lonTo = deg2rad($longitudeTo);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+                cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+        return round($angle * $earthRadius);
+    }
+
+    public function closestElevator($elevators, $points){
+        foreach ($elevators as $elevator){
+            $distance = $this->haversineGreatCircleDistance($points['shipment']['latitude'], $points['shipment']['longitude'], $elevator->latitude, $elevator->longitude);
+            $elevatorPoint[][$elevator->id] = $distance;
+        }
+
+        $elevator = Elevator::find(key(min($elevatorPoint)));
+        return $elevator;
+    }
+
+
+
+//    public function optimalPath($points, $paths){
+//
+////        dd($paths);
+//
+//        foreach($points as $point){
+//
+//            foreach($request->tools as $tool) {
+//                $tools = Tool::find();
+//
+//
+//                $points[$tool->name] = [
+//                    'latitude' => $tool->factory->latitude,
+//                    'longitude' => $tool->factory->longitude
+//                ];
+//
+//            }
+//        }
+//
+//        for ($i = 0; $i < count($paths); $i++){
+//            $paths[$i]['elevator'] = [
+//                'jdshv' => 'jfhwei'
+//            ];
+//        }
+//
+//
+//        $addPoints = function ($n, $points){
+//            return array_push($n, end($points));
+//
+//        };
+//
+//        $fullPath = array_map($addPoints, $paths);
+//
+//        return $paths;
+//    }
+
+
 
     /**
      * Show the form for creating a new resource.

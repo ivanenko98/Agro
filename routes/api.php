@@ -123,4 +123,8 @@ Route::group(['middleware' => 'auth:api'], function() {
     /** show paths list */
     Route::post('/path', 'PathController@index');
 
+
+
+    Route::post('/tsp', 'TspController@index');
+
 });
