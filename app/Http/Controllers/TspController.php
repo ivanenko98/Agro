@@ -16,7 +16,7 @@ class TspController extends Controller
     private $shortest_routes = array();	// any matching shortest routes
     private $shortest_distance = 0;		// holds the shortest distance
     private $all_routes = array();		// array of all the  possible combinations and there distances
-
+    private $elevator = array();
 
     // add a location
 //    public function add($name,$longitude,$latitude){
@@ -29,60 +29,93 @@ class TspController extends Controller
     public function compute($shipment){
 
         $locations = $this->locations;
-//        dd($locations);
+
 //        array_unshift($perm, $shipment->name);
 //        array_pop($locations);
-//        $elevator = array_pop($locations);
+//
+        foreach ($locations as $key => $location){
 
-        foreach ($locations as $location=>$coords){
-
-            $this->longitudes[$location] = $coords['longitude'];
-            $this->latitudes[$location] = $coords['latitude'];
+//            foreach ($location as $item){
+//                dd($item);
+                $this->elevator[$key][] = array_pop($location);
+//                unset($locations);
+//            dd($locations);
+                $locations_without_elevator[] = $location;
+//            print_r($locations_without_elevator);
+//            dd($location);
+//            }
         }
+//        print_r($elevator);
+//        dd($locations_without_elevator);
+        foreach ($locations_without_elevator as $locations1){
+//dd($locations1);
+            foreach ($locations1 as $location=>$coords){
+//                dd($locations1);
+//                print_r($coords);
+                $this->longitudes[$location] = $coords['longitude'];
+                $this->latitudes[$location] = $coords['latitude'];
+//                dd($this->longitudes);
+            }
+            $locations = array_keys($locations1);
 
-        $locations = array_keys($locations);
+//                print_r($locations);
 
-//        dd($locations);
-        $permutations = $this->array_permutations($locations, $perms = array());
+            $permutations = $this->array_permutations($locations, $perms = array());
 
+//                print_r($permutations);
+
+            foreach ($permutations as $perm){
+//                  array_unshift($perm, $shipment->name);
+//                  array_push($perm, $this->elevator);
+
+                $this->all_routes[] = $perm;
+            }
+
+//                dd($this->all_routes);
+
+            foreach ($this->all_routes as $key=>$perms){
+                $i=0;
+                $total = 0;
+//                foreach ($perms as $value){
+                for ($n = 0; $n < count($perms) - 1; $n++){
+                    if ($i<count($this->all_routes)-1){
+//                        print_r($this->latitudes[$perms[$i]]);
+                        $total+=$this->distance($this->latitudes[$perms[$i]],$this->longitudes[$perms[$i]],$this->latitudes[$perms[$i+1]],$this->longitudes[$perms[$i+1]]);
+                    }
+                    $i++;
+                }
+
+//                }
+                $this->all_routes[$key]['distance'] = $total;
+                if ($total<$this->shortest_distance || $this->shortest_distance ==0){
+                    $this->shortest_distance = $total;
+                    $this->shortest_route = $perms;
+                    $this->shortest_routes = array();
+                }
+                if ($total == $this->shortest_distance){
+                    $this->shortest_routes[] = $perms;
+                }
+            }
+
+            print_r($this->shortest_distance());
+            dd($this->shortest_route());
+        }
+//        print_r($locations1);
+//print_r($this->latitudes);
+
+
+//        print_r($locations);
+
+
+//        print_r($this->elevator);
+//        print_r($permutations);
 //        $shipment = Shipment::find($id_shipment);
 
-        foreach ($permutations as $perm){
-//            array_unshift($perm, $shipment->name);
-//            array_push($perm, $elevator);
 
-            $this->all_routes[] = $perm;
-        }
 
-        print_r($this->all_routes);
+//        print_r($this->all_routes);
 
-        foreach ($this->all_routes as $key=>$perms){
-//            dd($this->all_routes);
-            $i=0;
-            $total = 0;
-//            dd($this->latitudes);
-            foreach ($perms as $value){
-//                dd($perms);
-//                dd($this->latitudes[$value]);
-                if ($i<count($this->locations)-1){
-//                    dd($this->latitudes);
-//                    dd($perms[0]);
-//                    dd($this->latitudes[$perms[$i]]);
-                    $total+=$this->distance($this->latitudes[$perms[$i]],$this->longitudes[$perms[$i]],$this->latitudes[$perms[$i+1]],$this->longitudes[$perms[$i+1]]);
-//                    dd(111);
-                }
-                $i++;
-            }
-            $this->all_routes[$key]['distance'] = $total;
-            if ($total<$this->shortest_distance || $this->shortest_distance ==0){
-                $this->shortest_distance = $total;
-                $this->shortest_route = $perms;
-                $this->shortest_routes = array();
-            }
-            if ($total == $this->shortest_distance){
-                $this->shortest_routes[] = $perms;
-            }
-        }
+
     }
 
     // work out the distance between 2 longitude and latitude pairs
@@ -103,7 +136,7 @@ class TspController extends Controller
     // work out all the possible different permutations of an array of data
     private function array_permutations($items, $perms = array()) {
         static $all_permutations;
-
+//        dd($items);
         if (empty($items)) {
             $all_permutations[] = $perms;
         }  else {
@@ -227,22 +260,20 @@ class TspController extends Controller
             ];
         }
 
-        //Получаем все фабрики на которых есть этот Tool
+        // Получаем все фабрики на которых есть этот Tool
 
-        print_r($points);
+//        print_r($points);
 
         $result = $this->cartesian($points);
 
-        print_r($result);
+//        print_r($result);
 
         foreach ($result as $item){
-            dd($result);
-            $item[] = array_map("unserialize", array_unique( array_map("serialize", $item) ));
+//            dd($result);
+            $points_array[] = array_map("unserialize", array_unique( array_map("serialize", $item) ));
         }
 
-
-
-        dd($item);
+//        print_r($points_array);
 //        print_r($final_points_array);
 
         $tsp = new TspController;
@@ -287,23 +318,26 @@ class TspController extends Controller
 //            'longitude' => $shipment->longitude
 //        ];
 
-//        dd($final_points_array);
-        foreach($final_points_array as $fpoints){
-            //            dd($fpoints);
-            foreach ($fpoints as $fpoint){
+//        print_r($points_array);
+        foreach($points_array as $key => $points){
+//            dd($points);
 
-                print_r($fpoints);
-                //$tsp->add($fpoint['name'], $fpoint['longitude'], $fpoint['latitude']);
-                $this->locations[$fpoint['name']] = array('longitude'=>$fpoint['longitude'],'latitude' => $fpoint['latitude']);
+            foreach ($points as $point){
+//                print_r($point);
+
+//                dd($points);
+                $tsp->add($point['name'], $key, $point['longitude'], $point['latitude']);
+//                $this->locations[$point['name']] = array('longitude'=>$point['longitude'],'latitude' => $point['latitude']);
             }
         }
 //        dd(count($this->locations));
-        dd($this->locations);
+//        print_r($this->locations);
 
 
 
         $tsp->compute($shipment);
 //        dd($this->locations);
+
 
         echo 'Shortest Distance: '.$tsp->shortest_distance();
 
@@ -320,6 +354,25 @@ class TspController extends Controller
         echo '<br>All Routes: ';
 
         print_r($tsp->routes());
+    }
+
+//    public function add($name, $longitude, $latitude)
+//    {
+//        $this->locations[$name] = array('longitude'=> $longitude,'latitude' => $latitude);
+//    }
+
+    public function add($name, $name_array, $longitude, $latitude)
+    {
+        $this->locations[$name_array][$name] = array('longitude'=> $longitude,'latitude' => $latitude);
+    }
+
+    function change_key($key, $new_key, $arr, $rewrite=true){
+        if(!array_key_exists($new_key,$arr) || $rewrite){
+            $arr[$new_key]=$arr[$key];
+            unset($arr[$key]);
+            return true;
+        }
+        return false;
     }
 
 //    public function closestElevator($elevators, $points){
