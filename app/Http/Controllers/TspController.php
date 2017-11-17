@@ -17,6 +17,7 @@ class TspController extends Controller
     private $shortest_distance = 0;		// holds the shortest distance
     private $all_routes = array();		// array of all the  possible combinations and there distances
     private $elevator = array();
+    private $possible_route = array();
 
     // add a location
 //    public function add($name,$longitude,$latitude){
@@ -33,22 +34,15 @@ class TspController extends Controller
 //        array_unshift($perm, $shipment->name);
 //        array_pop($locations);
 //
-        foreach ($locations as $key => $location){
-
-//            foreach ($location as $item){
-//                dd($item);
-                $this->elevator[$key][] = array_pop($location);
-//                unset($locations);
-//            dd($locations);
-                $locations_without_elevator[] = $location;
-//            print_r($locations_without_elevator);
-//            dd($location);
-//            }
+        foreach ($locations as $key => $location) {
+            $this->elevator[$key] = array_pop($location);
+            $locations_without_elevator[] = $location;
         }
-//        print_r($elevator);
+//        print_r($this->elevator);
 //        dd($locations_without_elevator);
         foreach ($locations_without_elevator as $locations1){
-//dd($locations1);
+//        for ($m = 0; $m < (count($locations_without_elevator) - 1); $m++){
+        //dd($locations_without_elevator);
             foreach ($locations1 as $location=>$coords){
 //                dd($locations1);
 //                print_r($coords);
@@ -58,20 +52,24 @@ class TspController extends Controller
             }
             $locations = array_keys($locations1);
 
-//                print_r($locations);
+//                print_r($locations1);
 
             $permutations = $this->array_permutations($locations, $perms = array());
 
-//                print_r($permutations);
+//            array_push($permutations, 'fewjfhwieo');
+
+//            print_r($permutations);
 
             foreach ($permutations as $perm){
 //                  array_unshift($perm, $shipment->name);
 //                  array_push($perm, $this->elevator);
 
                 $this->all_routes[] = $perm;
+                unset($perm);
             }
 
-//                dd($this->all_routes);
+            unset($permutations);
+//                print_r($this->all_routes);
 
             foreach ($this->all_routes as $key=>$perms){
                 $i=0;
@@ -79,7 +77,8 @@ class TspController extends Controller
 //                foreach ($perms as $value){
                 for ($n = 0; $n < count($perms) - 1; $n++){
                     if ($i<count($this->all_routes)-1){
-//                        print_r($this->latitudes[$perms[$i]]);
+//                        print_r($this->possible_route);
+//                        print_r($perms);
                         $total+=$this->distance($this->latitudes[$perms[$i]],$this->longitudes[$perms[$i]],$this->latitudes[$perms[$i+1]],$this->longitudes[$perms[$i+1]]);
                     }
                     $i++;
@@ -97,8 +96,9 @@ class TspController extends Controller
                 }
             }
 
-            print_r($this->shortest_distance());
-            dd($this->shortest_route());
+            unset($this->all_routes);
+            $this->possible_route[$this->shortest_distance()] = $this->shortest_route();
+            print_r($this->possible_route);
         }
 //        print_r($locations1);
 //print_r($this->latitudes);
@@ -337,23 +337,23 @@ class TspController extends Controller
 
         $tsp->compute($shipment);
 //        dd($this->locations);
+//        dd($this->possible_route);
 
-
-        echo 'Shortest Distance: '.$tsp->shortest_distance();
-
-        echo '<br> Shortest Route: ';
-
-        print_r($tsp->shortest_route());
-
-        echo '<br> Num Routes: '.count($tsp->routes());
-
-        echo '<br> Matching shortest Routes: ';
-
-        print_r($tsp->matching_shortest_routes());
-
-        echo '<br>All Routes: ';
-
-        print_r($tsp->routes());
+//        echo 'Shortest Distance: '.$tsp->shortest_distance();
+//
+//        echo '<br> Shortest Route: ';
+//
+//        print_r($tsp->shortest_route());
+//
+//        echo '<br> Num Routes: '.count($tsp->routes());
+//
+//        echo '<br> Matching shortest Routes: ';
+//
+//        print_r($tsp->matching_shortest_routes());
+//
+//        echo '<br>All Routes: ';
+//
+//        print_r($tsp->routes());
     }
 
 //    public function add($name, $longitude, $latitude)
