@@ -16,76 +16,49 @@ class TspController extends Controller
     private $shortest_routes = array();	// any matching shortest routes
     private $shortest_distance = 0;		// holds the shortest distance
     private $all_routes = array();		// array of all the  possible combinations and there distances
-    private $elevator = array();
     private $possible_route = array();
-
-    // add a location
-//    public function add($name,$longitude,$latitude){
-//        $this->locations[$name] = array('longitude'=>$longitude,'latitude'=>$latitude);
-//        dd($this->locations);
-//        dd($this->locations);
-//    }
 
     // the main function that des the calculations
     public function compute($shipment){
 
         $locations = $this->locations;
 
-//        array_unshift($perm, $shipment->name);
-//        array_pop($locations);
-//
-        foreach ($locations as $key => $location) {
-            $this->elevator[$key] = array_pop($location);
-            $locations_without_elevator[] = $location;
-        }
-//        print_r($this->elevator);
-//        dd($locations_without_elevator);
-        foreach ($locations_without_elevator as $locations1){
-//        for ($m = 0; $m < (count($locations_without_elevator) - 1); $m++){
-        //dd($locations_without_elevator);
+        foreach ($locations as $locations1){
             foreach ($locations1 as $location=>$coords){
-//                dd($locations1);
-//                print_r($coords);
                 $this->longitudes[$location] = $coords['longitude'];
                 $this->latitudes[$location] = $coords['latitude'];
-//                dd($this->longitudes);
             }
+
             $locations = array_keys($locations1);
 
-//                print_r($locations1);
+            array_shift($locations);
 
-            $permutations = $this->array_permutations($locations, $perms = array());
-
-//            array_push($permutations, 'fewjfhwieo');
-
-//            print_r($permutations);
+            foreach ($this->array_permutations($locations) as $permutation) {
+                $permutations[] = $permutation;
+            }
 
             foreach ($permutations as $perm){
-//                  array_unshift($perm, $shipment->name);
-//                  array_push($perm, $this->elevator);
-
+                array_unshift($perm, $shipment->name);
                 $this->all_routes[] = $perm;
                 unset($perm);
             }
 
             unset($permutations);
-//                print_r($this->all_routes);
 
             foreach ($this->all_routes as $key=>$perms){
                 $i=0;
                 $total = 0;
-//                foreach ($perms as $value){
+
                 for ($n = 0; $n < count($perms) - 1; $n++){
-                    if ($i<count($this->all_routes)-1){
-//                        print_r($this->possible_route);
-//                        print_r($perms);
+                    if ($i<count($perms)-1){
                         $total+=$this->distance($this->latitudes[$perms[$i]],$this->longitudes[$perms[$i]],$this->latitudes[$perms[$i+1]],$this->longitudes[$perms[$i+1]]);
+
                     }
                     $i++;
                 }
 
-//                }
                 $this->all_routes[$key]['distance'] = $total;
+
                 if ($total<$this->shortest_distance || $this->shortest_distance ==0){
                     $this->shortest_distance = $total;
                     $this->shortest_route = $perms;
@@ -94,31 +67,20 @@ class TspController extends Controller
                 if ($total == $this->shortest_distance){
                     $this->shortest_routes[] = $perms;
                 }
-            }
 
+                unset($perms);
+            }
+            unset($this->latitudes);
+            unset($this->longitudes);
             unset($this->all_routes);
+            unset($permutations);
             $this->possible_route[$this->shortest_distance()] = $this->shortest_route();
             print_r($this->possible_route);
         }
-//        print_r($locations1);
-//print_r($this->latitudes);
-
-
-//        print_r($locations);
-
-
-//        print_r($this->elevator);
-//        print_r($permutations);
-//        $shipment = Shipment::find($id_shipment);
-
-
-
-//        print_r($this->all_routes);
-
-
     }
 
     // work out the distance between 2 longitude and latitude pairs
+
     public function distance($latitudeFrom, $longitudeFrom, $latitudeTo, $longitudeTo, $earthRadius = 6371000) {
         // convert from degrees to radians
         $latFrom = deg2rad($latitudeFrom);
@@ -130,26 +92,25 @@ class TspController extends Controller
         $lonDelta = $lonTo - $lonFrom;
 
         $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) + cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
+
         return round($angle * $earthRadius);
     }
 
-    // work out all the possible different permutations of an array of data
-    private function array_permutations($items, $perms = array()) {
-        static $all_permutations;
-//        dd($items);
-        if (empty($items)) {
-            $all_permutations[] = $perms;
-        }  else {
-            for ($i = count($items) - 1; $i >= 0; --$i) {
-                $newitems = $items;
-                $newperms = $perms;
-                list($foo) = array_splice($newitems, $i, 1);
-                array_unshift($newperms, $foo);
-                $this->array_permutations($newitems, $newperms);
+    private function array_permutations(array $elements)
+    {
+        if (count($elements) <= 1) {
+            yield $elements;
+        } else {
+            foreach ($this->array_permutations(array_slice($elements, 1)) as $permutation) {
+                foreach (range(0, count($elements) - 2) as $i) {
+                    yield array_merge(
+                        array_slice($permutation, 0, $i),
+                        [$elements[0]],
+                        array_slice($permutation, $i)
+                    );
+                }
             }
         }
-        return $all_permutations;
-
     }
 
     function cartesian($input) {
@@ -222,22 +183,19 @@ class TspController extends Controller
         return $this->shortest_distance;
     }
 
-    // returns an array of all the possible routes
-    public function routes(){
-        return $this->all_routes;
-    }
-
     public function index(Request $request){
 
         $shipment = Shipment::find($request->shipment);
 
+        $points['shipment'][] = [
+                'name' => $shipment->name,
+                'latitude' => $shipment->latitude,
+                'longitude' => $shipment->longitude
+        ];
 
         foreach($request->tools as $tool){
 
             $tools = Tool::where('name', $tool)->get()->all();
-
-
-//            dd($tools);
 
             foreach($tools as $tool){
                 $points[$tool->name][] = [
@@ -250,8 +208,6 @@ class TspController extends Controller
 
         $elevators = Elevator::all();
 
-//        $closestElevator = $this->closestElevator($elevators, $points);
-
         foreach($elevators as $elevator){
             $points['elevator'][] = [
                 'name' => $elevator->name,
@@ -260,106 +216,28 @@ class TspController extends Controller
             ];
         }
 
-        // Получаем все фабрики на которых есть этот Tool
-
-//        print_r($points);
-
         $result = $this->cartesian($points);
 
-//        print_r($result);
-
         foreach ($result as $item){
-//            dd($result);
             $points_array[] = array_map("unserialize", array_unique( array_map("serialize", $item) ));
         }
 
-//        print_r($points_array);
-//        print_r($final_points_array);
-
         $tsp = new TspController;
 
-//        foreach ($final_points_array as $fpoints1){
-//            $fpoints1[] = [
-//                'name' => $shipment->name,
-//                'latitude' => $shipment->latitude,
-//                'longitude' => $shipment->longitude
-//            ];
-
-
-//            array_unshift($fpoints1, $fpoints1['shipment'] = [
-//                'name' => $shipment->name,
-//                'latitude' => $shipment->latitude,
-//                'longitude' => $shipment->longitude
-//            ]);
-
-//            $age = array_merge( [
-//                'shipment' => [
-//                    'name' => $shipment->name,
-//                    'latitude' => $shipment->latitude,
-//                    'longitude' => $shipment->longitude
-//                ]
-//            ], $fpoints1);
-//
-//            dd($age);
-
-//            array_unshift($fpoints1, [
-//                'name' => $shipment->name,
-//                'latitude' => $shipment->latitude,
-//                'longitude' => $shipment->longitude
-//            ]);
-//            dd($fpoints1);
-//        }
-
-
-
-//        $final_points_array = [
-//            'name' => $shipment->name,
-//            'latitude' => $shipment->latitude,
-//            'longitude' => $shipment->longitude
-//        ];
-
-//        print_r($points_array);
         foreach($points_array as $key => $points){
-//            dd($points);
-
             foreach ($points as $point){
-//                print_r($point);
-
-//                dd($points);
                 $tsp->add($point['name'], $key, $point['longitude'], $point['latitude']);
-//                $this->locations[$point['name']] = array('longitude'=>$point['longitude'],'latitude' => $point['latitude']);
             }
         }
-//        dd(count($this->locations));
-//        print_r($this->locations);
-
-
 
         $tsp->compute($shipment);
-//        dd($this->locations);
-//        dd($this->possible_route);
 
-//        echo 'Shortest Distance: '.$tsp->shortest_distance();
-//
-//        echo '<br> Shortest Route: ';
-//
-//        print_r($tsp->shortest_route());
-//
-//        echo '<br> Num Routes: '.count($tsp->routes());
-//
-//        echo '<br> Matching shortest Routes: ';
-//
-//        print_r($tsp->matching_shortest_routes());
-//
-//        echo '<br>All Routes: ';
-//
-//        print_r($tsp->routes());
+        echo 'Shortest Distance: '.$tsp->shortest_distance();
+
+        echo '<br> Shortest Route: ';
+
+        print_r($tsp->shortest_route());
     }
-
-//    public function add($name, $longitude, $latitude)
-//    {
-//        $this->locations[$name] = array('longitude'=> $longitude,'latitude' => $latitude);
-//    }
 
     public function add($name, $name_array, $longitude, $latitude)
     {
@@ -374,14 +252,4 @@ class TspController extends Controller
         }
         return false;
     }
-
-//    public function closestElevator($elevators, $points){
-//        foreach ($elevators as $elevator){
-//            $distance = $this->distance($points['shipment']['latitude'], $points['shipment']['longitude'], $elevator->latitude, $elevator->longitude);
-//            $elevatorPoint[][$elevator->id] = $distance;
-//        }
-//
-//        $elevator = Elevator::find(key(min($elevatorPoint)));
-//        return $elevator;
-//    }
 }
