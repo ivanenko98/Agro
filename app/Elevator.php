@@ -16,4 +16,8 @@ class Elevator extends Model
     {
         return $this->belongsToMany('App\Investor');
     }
+
+    public function region(){
+        return $this->belongsTo(Region::class);
+    }
 }

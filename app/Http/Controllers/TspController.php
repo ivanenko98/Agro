@@ -75,7 +75,6 @@ class TspController extends Controller
             unset($this->all_routes);
             unset($permutations);
             $this->possible_route[$this->shortest_distance()] = $this->shortest_route();
-            print_r($this->possible_route);
         }
     }
 

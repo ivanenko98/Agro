@@ -118,13 +118,42 @@ Route::group(['middleware' => 'auth:api'], function() {
     Route::delete('/rent/{elevator}', 'RentController@destroy');
 
 
-    /** PATHS */
+    /** TSP */
 
-    /** show paths list */
-    Route::post('/path', 'PathController@index');
-
-
-
+    /** show optimal paths */
     Route::post('/tsp', 'TspController@index');
 
+
+    /** REGIONS */
+
+    /** show regions list */
+    Route::get('/region', 'RegionController@index');
+    /** show blocks of region */
+    Route::get('/region/{region}', 'RegionController@show');
+    /** save new region */
+    Route::post('/region', 'RegionController@store');
+    /** update region */
+    Route::put('/region/{region}', 'RegionController@update');
+    /** delete region */
+    Route::delete('/region/{region}', 'RegionController@destroy');
+
+
+    /** FIELDS */
+
+    /** show fields list */
+    Route::get('/field', 'FieldController@index');
+    /** show blocks of field */
+    Route::get('/field/{field}', 'FieldController@show');
+    /** save new field */
+    Route::post('/field', 'FieldController@store');
+    /** update field */
+    Route::put('/field/{field}', 'FieldController@update');
+    /** delete field */
+    Route::delete('/field/{field}', 'FieldController@destroy');
+
+
+    /** OPFE */
+
+    /** show optimal place for elevators */
+    Route::get('/opfe', 'OPFEController@index');
 });
