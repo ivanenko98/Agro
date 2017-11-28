@@ -35,11 +35,12 @@ class OPFEController extends Controller
                     $elevators_distance[$elevator->name][$region_field['name']] = $distance;
                 }
                 $report = $this->filingElevator($region_elevators, $region_fields, $elevators_distance[$elevator->name], $elevator->name);
-
                 if ($report !== false){
                     unset($region_fields);
                     $region_fields = $report;
+                    unset($elevators_distance);
                     $rest_fields = $region_fields;
+
                 }else{
                     unset($rest_field);
                     break;
@@ -53,58 +54,51 @@ class OPFEController extends Controller
                         'longitude' => $rest_field['longitude']
                     ];
                 }
-//                print_r($coordinates_fields);
-                $possible_elevator = $this->getCenter($coordinates_fields);
-                print_r($possible_elevator);
+
+                $possible_elevators[$region->name] = $this->GetCenterFromDegrees($coordinates_fields);
             }
+            unset($region_fields);
+            unset($region_elevators);
+            unset($report);
+            unset($rest_fields);
+            unset($coordinates_fields);
         }
+        dd($possible_elevators);
     }
 
-    public function getCenter($polygon) {
-        $NumPoints = count($polygon);
-
-        if($polygon[$NumPoints-1] == $polygon[0]){
-            $NumPoints--;
-        }else{
-            //Add the first point at the end of the array.
-            $polygon[$NumPoints] = $polygon[0];
-        }
-
-        $x = 0;
-        $y = 0;
-
-        $lastPoint = $polygon[$NumPoints - 1];
-
-        for ($i=0; $i<=$NumPoints - 1; $i++) {
-            $point = $polygon[$i];
-            $x += ($lastPoint[0] + $point[0]) * ($lastPoint[0] * $point[1] - $point[0] * $lastPoint[1]);
-            $y += ($lastPoint[1] + $point[1]) * ($lastPoint[0] * $point[1] - $point[0] * $lastPoint[1]);
-            $lastPoint = $point;
-        }
-
-        $x /= 6*$this->ComputeArea($polygon);
-        $y /= 6*$this->ComputeArea($polygon);
-
-        return array($x, $y);
-    }
-
-    function ComputeArea($polygon)
+    function GetCenterFromDegrees($data)
     {
-        $NumPoints = count($polygon);
+        if (!is_array($data)) return FALSE;
 
-        if($polygon[$NumPoints-1] == $polygon[0]){
-            $NumPoints--;
-        }else{
-            //Add the first point at the end of the array.
-            $polygon[$NumPoints] = $polygon[0];
+        $num_coords = count($data);
+
+        $X = 0.0;
+        $Y = 0.0;
+        $Z = 0.0;
+
+        foreach ($data as $coord)
+        {
+            $lat = $coord['latitude'] * pi() / 180;
+            $lon = $coord['longitude'] * pi() / 180;
+
+            $a = cos($lat) * cos($lon);
+            $b = cos($lat) * sin($lon);
+            $c = sin($lat);
+
+            $X += $a;
+            $Y += $b;
+            $Z += $c;
         }
 
-        $area = 0;
+        $X /= $num_coords;
+        $Y /= $num_coords;
+        $Z /= $num_coords;
 
-        for( $i = 0; $i <= $NumPoints; ++$i )
-            $area += $polygon[$i][0]*( $polygon[$i+1][1] - $polygon[$i-1][1] );
-        $area /= 2;
-        return $area;
+        $lon = atan2($Y, $X);
+        $hyp = sqrt($X * $X + $Y * $Y);
+        $lat = atan2($Z, $hyp);
+
+        return array($lat * 180 / pi(), $lon * 180 / pi());
     }
 
     public function filingElevator($region_elevators, $region_fields, $elevator_distance, $elevator){
