@@ -156,4 +156,5 @@ Route::group(['middleware' => 'auth:api'], function() {
 
     /** show optimal place for elevators */
     Route::get('/opfe', 'OPFEController@index');
+    Route::post('/inarea', 'OPFEController@inArea');
 });

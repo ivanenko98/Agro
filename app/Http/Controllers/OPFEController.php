@@ -126,4 +126,21 @@ class OPFEController extends Controller
         }
         return $region_fields;
     }
+
+    public function inArea(Request $request){
+        $tsp = new TspController();
+
+        $regions = Region::all();
+
+        foreach ($regions as $region){
+            $distance = $tsp->distance($region->latitude, $region->longitude, $request->latitude, $request->longitude);
+
+            if($region->radius >= $distance){
+                $status = true;
+                return $region->name. ' ' . 'id:'. $region->id ;
+            } else{
+                $status = false;
+            }
+        }
+    }
 }
